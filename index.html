@@ -1,1 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Rewards</title>
 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            width: 350px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #00a2ff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0084d1;
+        }
+
+        #status {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Roblox Reward System</h1>
+
+    <input type="text" id="username" placeholder="Roblox Benutzername">
+
+    <button onclick="claimReward()">
+        Belohnung anfordern
+    </button>
+
+    <p id="status"></p>
+</div>
+
+<script>
+function claimReward() {
+    const username = document.getElementById("username").value;
+    const status = document.getElementById("status");
+
+    if (!username) {
+        status.textContent = "Bitte einen Benutzernamen eingeben.";
+        return;
+    }
+
+    status.textContent = `Anfrage für ${username} gesendet...`;
+
+    // Hier kommt später die Verbindung zum Backend
+}
+</script>
+
+</body>
+</html>
