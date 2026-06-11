@@ -8,21 +8,23 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
+
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #0a0a0c;
-            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #050507;
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
             overflow: hidden;
             position: relative;
         }
 
-        /* Hintergrund Canvas für die Maus-Effekte */
+        /* Eleganter, unaufdringlicher Hintergrund-Canvas */
         #effect-canvas {
             position: absolute;
             top: 0;
@@ -33,75 +35,97 @@
             pointer-events: none;
         }
 
+        /* Ultra-Clean Card Design */
         .container {
-            background: rgba(30, 30, 35, 0.75);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 16px;
+            background: rgba(15, 15, 20, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px 30px;
+            border-radius: 24px;
             text-align: center;
-            width: 380px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            z-index: 2; /* Über den Effekten */
-            transition: transform 0.3s ease;
+            width: 360px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 2;
+            transition: border-color 0.4s ease, transform 0.4s ease;
         }
 
         .container:hover {
+            border-color: rgba(0, 162, 255, 0.2);
             transform: translateY(-2px);
-            border-color: rgba(0, 162, 255, 0.3);
         }
 
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-            background: linear-gradient(45deg, #00a2ff, #00ffaa);
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, #ffffff, #a1a1aa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
+        p.subtitle {
+            color: #71717a;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        /* Minimalistisches Input-Feld */
         input {
             width: 100%;
-            padding: 14px;
-            margin-top: 20px;
-            border: 1px solid #2d2d35;
-            border-radius: 8px;
-            background: rgba(20, 20, 25, 0.8);
-            color: white;
-            font-size: 1rem;
-            transition: all 0.2s;
+            padding: 14px 16px;
+            margin-top: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: #ffffff;
+            font-size: 0.95rem;
+            text-align: center;
+            transition: all 0.3s ease;
         }
 
         input:focus {
             outline: none;
-            border-color: #00a2ff;
-            box-shadow: 0 0 10px rgba(0, 162, 255, 0.2);
+            border-color: rgba(0, 162, 255, 0.5);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 20px rgba(0, 162, 255, 0.1);
         }
 
+        input::placeholder {
+            color: #42424a;
+        }
+
+        /* Cleaner, flacher Button */
         button {
             width: 100%;
-            margin-top: 15px;
+            margin-top: 12px;
             padding: 14px;
             border: none;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #00a2ff, #0066ff);
-            color: white;
-            font-weight: bold;
-            font-size: 1rem;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #050507;
+            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+            transition: all 0.3s ease;
         }
 
         button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(0, 162, 255, 0.5);
+            background: #e4e4e7;
+            transform: scale(1.01);
         }
 
+        button:active {
+            transform: scale(0.99);
+        }
+
+        /* Status Text */
         #status {
             margin-top: 20px;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             line-height: 1.5;
-            color: #aaa;
+            color: #a1a1aa;
+            min-height: 22px; /* Verhindert das Ruckeln der Box bei Textänderung */
         }
     </style>
 </head>
@@ -110,21 +134,18 @@
 <canvas id="effect-canvas"></canvas>
 
 <div class="container">
-    <h1>Roblox Live Reward</h1>
-    <p style="color: #8e8e93; font-size: 0.9em; margin: 0;">Hol dir alle 24h deine kostenlosen <span style="color:#00ffaa; font-weight:bold;">1.000 Wins</span>!</p>
+    <h1>Live Reward</h1>
+    <p class="subtitle">Gib deinen Namen ein. Du erhältst alle 24h automatisch <span style="color: #00a2ff; font-weight: 500;">1.000 Wins</span> im Spiel.</p>
 
-    <input type="text" id="username" placeholder="Roblox Benutzername">
-
-    <button onclick="claimReward()">
-        Wins aktivieren
-    </button>
+    <input type="text" id="username" placeholder="Roblox Name" autocomplete="off">
+    <button onclick="claimReward()">Wins anfordern</button>
 
     <p id="status"></p>
 </div>
 
 <script>
 // ==========================================
-// INTERAKTIVE MAUS-EFFEKTE (PARTIKEL)
+// ELEGANTER, CLEANER MAUS-SCHWEIF (PARTIKEL)
 // ==========================================
 const canvas = document.getElementById("effect-canvas");
 const ctx = canvas.getContext("2d");
@@ -143,8 +164,8 @@ window.addEventListener("mousemove", (e) => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
     
-    // Erzeuge bei Bewegung Partikel an der Mausposition
-    for (let i = 0; i < 2; i++) {
+    // Ganz dezenter Spawneffekt (nur 1 edler Partikel pro Bewegung)
+    if (Math.random() > 0.4) {
         particles.push(new Particle(mouse.x, mouse.y));
     }
 });
@@ -153,13 +174,15 @@ class Particle {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() * 2 - 1;
-        this.speedY = Math.random() * 2 - 1;
-        // Schöne Neon-Blau/Grün Farbtöne abwechselnd
-        this.color = Math.random() > 0.5 ? "rgba(0, 162, 255," : "rgba(0, 255, 170,";
-        this.alpha = 1;
-        this.decay = Math.random() * 0.015 + 0.005;
+        // Sanftere, leicht unterschiedliche Größen
+        this.size = Math.random() * 2 + 0.5;
+        // Trägere, fließende Bewegung
+        this.speedX = Math.random() * 0.8 - 0.4;
+        this.speedY = Math.random() * 0.8 - 0.4;
+        // Ein sehr edles, dezentes Hellblau/Weiß-Glühen
+        this.color = "rgba(165, 215, 255, ";
+        this.alpha = 0.6;
+        this.decay = Math.random() * 0.008 + 0.004; // Verblassen sehr langsam und edel
     }
     update() {
         this.x += this.speedX;
@@ -196,11 +219,11 @@ async function claimReward() {
     const status = document.getElementById("status");
 
     if (!username) {
-        status.innerHTML = "<span style='color: #ff3b30;'>Bitte einen Benutzernamen eingeben.</span>";
+        status.innerHTML = "<span style='color: #ef4444;'>Bitte Namen eingeben.</span>";
         return;
     }
 
-    status.innerHTML = "Prüfe Berechtigung...";
+    status.innerHTML = "Prüfe...";
 
     try {
         const res = await fetch("https://roblox-reward.onrender.com/create-claim", {
@@ -215,14 +238,15 @@ async function claimReward() {
 
         if (data.success) {
             status.innerHTML = `
-                <span style="color: #4cd137; font-weight: bold;">✔ Erfolgreich freigeschaltet!</span><br><br>
-                Deine <span style="color:#00a2ff; font-weight:bold;">1000 Wins</span> wurden übertragen. Schau direkt in dein Spiel! (Nächster Claim in 24 Std. möglich)
+                <span style="color: #10b981; font-weight: 500;">✔ Erfolgreich aktiviert</span><br>
+                <span style="color: #71717a; font-size: 0.8rem;">Schau jetzt live in dein Spiel!</span>
             `;
         } else {
-            status.innerHTML = `<span style="color: #ff3b30; font-weight: bold;">${data.error}</span>`;
+            // Fehlermeldung vom Server (z.B. Cooldown) anzeigen
+            status.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
         }
     } catch (error) {
-        status.innerHTML = "<span style='color: #ff3b30;'>Server temporär überlastet. Bitte gleich nochmal versuchen.</span>";
+        status.innerHTML = "<span style='color: #ef4444;'>Server nicht erreichbar.</span>";
         console.error(error);
     }
 }
