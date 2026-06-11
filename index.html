@@ -6,92 +6,201 @@
     <title>Roblox Rewards</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial, sans-serif;
-            background: #121212;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0a0a0c;
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Hintergrund Canvas für die Maus-Effekte */
+        #effect-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .container {
-            background: #1e1e1e;
-            padding: 30px;
-            border-radius: 12px;
+            background: rgba(30, 30, 35, 0.75);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 16px;
             text-align: center;
-            width: 350px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 380px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 2; /* Über den Effekten */
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0, 162, 255, 0.3);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #00a2ff, #00ffaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            margin-top: 15px;
-            border: 1px solid #333;
-            border-radius: 6px;
-            background: #252525;
+            padding: 14px;
+            margin-top: 20px;
+            border: 1px solid #2d2d35;
+            border-radius: 8px;
+            background: rgba(20, 20, 25, 0.8);
             color: white;
-            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.2s;
         }
 
         input:focus {
-            outline: 1px solid #00a2ff;
+            outline: none;
+            border-color: #00a2ff;
+            box-shadow: 0 0 10px rgba(0, 162, 255, 0.2);
         }
 
         button {
             width: 100%;
             margin-top: 15px;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 6px;
-            background: #00a2ff;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #00a2ff, #0066ff);
             color: white;
             font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
         }
 
         button:hover {
-            background: #0084d1;
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 162, 255, 0.5);
         }
 
         #status {
             margin-top: 20px;
             font-size: 0.95rem;
             line-height: 1.5;
-            color: #ccc;
+            color: #aaa;
         }
     </style>
 </head>
 <body>
 
+<canvas id="effect-canvas"></canvas>
+
 <div class="container">
-    <h1>Roblox Reward System</h1>
-    <p style="color: #aaa; font-size: 0.9em;">Gib deinen Namen ein, um 1000 Wins freizuschalten (Egal ob online oder offline!)</p>
+    <h1>Roblox Live Reward</h1>
+    <p style="color: #8e8e93; font-size: 0.9em; margin: 0;">Hol dir alle 24h deine kostenlosen <span style="color:#00ffaa; font-weight:bold;">1.000 Wins</span>!</p>
 
     <input type="text" id="username" placeholder="Roblox Benutzername">
 
     <button onclick="claimReward()">
-        Wins anfordern
+        Wins aktivieren
     </button>
 
     <p id="status"></p>
 </div>
 
 <script>
+// ==========================================
+// INTERAKTIVE MAUS-EFFEKTE (PARTIKEL)
+// ==========================================
+const canvas = document.getElementById("effect-canvas");
+const ctx = canvas.getContext("2d");
+
+let particles = [];
+const mouse = { x: null, y: null };
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+window.addEventListener("mousemove", (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    
+    // Erzeuge bei Bewegung Partikel an der Mausposition
+    for (let i = 0; i < 2; i++) {
+        particles.push(new Particle(mouse.x, mouse.y));
+    }
+});
+
+class Particle {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 2 - 1;
+        this.speedY = Math.random() * 2 - 1;
+        // Schöne Neon-Blau/Grün Farbtöne abwechselnd
+        this.color = Math.random() > 0.5 ? "rgba(0, 162, 255," : "rgba(0, 255, 170,";
+        this.alpha = 1;
+        this.decay = Math.random() * 0.015 + 0.005;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.alpha -= this.decay;
+    }
+    draw() {
+        ctx.fillStyle = this.color + this.alpha + ")";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].alpha <= 0) {
+            particles.splice(i, 1);
+            i--;
+        }
+    }
+    requestAnimationFrame(animate);
+}
+animate();
+
+// ==========================================
+// CLAIM LOGIK
+// ==========================================
 async function claimReward() {
     const username = document.getElementById("username").value.trim();
     const status = document.getElementById("status");
 
     if (!username) {
-        status.textContent = "Bitte einen Benutzernamen eingeben.";
+        status.innerHTML = "<span style='color: #ff3b30;'>Bitte einen Benutzernamen eingeben.</span>";
         return;
     }
 
-    status.innerHTML = "Verarbeite Anforderung...";
+    status.innerHTML = "Prüfe Berechtigung...";
 
     try {
         const res = await fetch("https://roblox-reward.onrender.com/create-claim", {
@@ -106,14 +215,14 @@ async function claimReward() {
 
         if (data.success) {
             status.innerHTML = `
-                <span style="color: #4cd137; font-weight: bold;">✔ Belohnung registriert!</span><br><br>
-                Deine <span style="color:#00a2ff; font-weight:bold;">1000 Wins</span> wurden für deinen Account hinterlegt. Wenn du im Spiel bist oder es betrittst, werden sie dir direkt gutgeschrieben!
+                <span style="color: #4cd137; font-weight: bold;">✔ Erfolgreich freigeschaltet!</span><br><br>
+                Deine <span style="color:#00a2ff; font-weight:bold;">1000 Wins</span> wurden übertragen. Schau direkt in dein Spiel! (Nächster Claim in 24 Std. möglich)
             `;
         } else {
-            status.textContent = "Fehler: " + (data.error || "Unbekannter Fehler");
+            status.innerHTML = `<span style="color: #ff3b30; font-weight: bold;">${data.error}</span>`;
         }
     } catch (error) {
-        status.textContent = "Server nicht erreichbar. Bitte später versuchen.";
+        status.innerHTML = "<span style='color: #ff3b30;'>Server temporär überlastet. Bitte gleich nochmal versuchen.</span>";
         console.error(error);
     }
 }
