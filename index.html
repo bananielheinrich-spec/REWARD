@@ -1,81 +1,124 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Reward Claim</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Rewards</title>
 
-<style>
-body {
-    font-family: Arial;
-    background: #0f0f0f;
-    color: white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-.box {
-    background:#1c1c1c;
-    padding:25px;
-    border-radius:10px;
-    width:300px;
-    text-align:center;
-}
+        .container {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
 
-input {
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-}
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #252525;
+            color: white;
+            box-sizing: border-box;
+        }
 
-button {
-    margin-top:10px;
-    padding:10px;
-    width:100%;
-    background:#00a2ff;
-    border:none;
-    color:white;
-    cursor:pointer;
-}
-</style>
+        input:focus {
+            outline: 1px solid #00a2ff;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #00a2ff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0084d1;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #ccc;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="box">
-    <h2>Daily Reward</h2>
+<div class="container">
+    <h1>Roblox Reward System</h1>
+    <p style="color: #aaa; font-size: 0.9em;">Gib deinen Namen ein, um 1000 Wins anzufordern</p>
 
-    <input id="username" placeholder="Roblox Username">
+    <input type="text" id="username" placeholder="Roblox Benutzername">
 
-    <button onclick="claim()">CLAIM</button>
+    <!-- Hier ist der Button mit der korrekten onclick-Funktion -->
+    <button onclick="claimReward()">
+        Belohnung anfordern
+    </button>
 
     <p id="status"></p>
 </div>
 
 <script>
-async function claim() {
-    const username = document.getElementById("username").value;
+async function claimReward() {
+    const username = document.getElementById("username").value.trim();
     const status = document.getElementById("status");
 
     if (!username) {
-        status.innerText = "Bitte Username eingeben!";
+        status.textContent = "Bitte einen Benutzernamen eingeben.";
         return;
     }
 
-    status.innerText = "Wird verarbeitet...";
+    status.innerHTML = "Generiere sicheren Token...<br><span style='font-size:0.8em; color:#888;'>Bitte warten.</span>";
 
-    const res = await fetch("http://localhost:3000/claim", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username })
-    });
+    try {
+        // Verbindung zu deinem Render Live-Server
+        const res = await fetch("https://roblox-reward.onrender.com/create-claim", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    status.innerText = data.message;
+        if (data.success) {
+            status.innerHTML = `
+                <span style="color: #4cd137; font-weight: bold;">✔ Token erfolgreich generiert!</span><br><br>
+                Kopiere diesen Code, gehe in mein Spiel und löse ihn dort ein:<br><br>
+                <strong style="color: #00a2ff; font-size: 1.4em; letter-spacing: 1px; background: #2a2a2a; padding: 5px 10px; border-radius: 4px; display: inline-block;">${data.token}</strong>
+            `;
+        } else {
+            status.textContent = "Fehler beim Erstellen des Claims: " + (data.error || "Unbekannter Fehler");
+        }
+    } catch (error) {
+        status.textContent = "Server temporär nicht erreichbar. Versuche es gleich noch einmal.";
+        console.error(error);
+    }
 }
 </script>
 
