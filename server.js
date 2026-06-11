@@ -5,10 +5,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Speicher für offene Claims (Username: true)
+// Speicher für offene Claims, die auf Abholung warten
 const pendingClaims = {};
 
-// 🔐 Endpunkt 1: Website registriert den Claim (Egal ob User online oder offline ist)
+// Speicher für den Zeitstempel des letzten erfolgreichen Claims (Username: Zeit in ms)
+const cooldowns = {};
+
+const COOLDOWN_TIME = 24 * 60 * 60 * 1000; // 24 Stunden in Millisekunden
+
+// 🔐 Endpunkt 1: Website registriert den Claim
 app.post("/create-claim", (req, res) => {
     const { username } = req.body;
 
@@ -17,11 +22,26 @@ app.post("/create-claim", (req, res) => {
     }
 
     const cleanName = username.trim().toLowerCase();
-    
-    // Claim speichern
-    pendingClaims[cleanName] = true;
+    const now = Date.now();
 
-    console.log(`[Website] Claim für ${username} registriert.`);
+    -- Prüfen, ob der Spieler noch Cooldown hat
+    if (cooldowns[cleanName]) {
+        const timePassed = now - cooldowns[cleanName];
+        if (timePassed < COOLDOWN_TIME) {
+            const timeLeft = COOLDOWN_TIME - timePassed;
+            const hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
+            return res.json({ 
+                success: false, 
+                error: `Du hast deine Belohnung heute schon abgeholt! Warte noch ${hoursLeft} Stunden.` 
+            });
+        }
+    }
+    
+    // Claim registrieren & Cooldown-Zeitstempel vorübergehend setzen
+    pendingClaims[cleanName] = true;
+    cooldowns[cleanName] = now; 
+
+    console.log(`[Website] Claim für ${username} registriert. (24h Cooldown gestartet)`);
     res.json({ success: true });
 });
 
@@ -31,7 +51,7 @@ app.get("/auto-validate/:username", (req, res) => {
     const cleanName = username.trim().toLowerCase();
 
     if (pendingClaims[cleanName]) {
-        delete pendingClaims[cleanName]; // Sofort löschen nach Erhalt
+        delete pendingClaims[cleanName];
         console.log(`[Roblox - Join] Claim für ${username} eingelöst.`);
         return res.json({ valid: true, reward: 1000 });
     }
@@ -39,7 +59,7 @@ app.get("/auto-validate/:username", (req, res) => {
     res.json({ valid: false });
 });
 
-// 🎮 Endpunkt 3: Roblox prüft LIVE-Spieler (Alle 5 Sekunden im Hintergrund)
+// 🎮 Endpunkt 3: Roblox prüft LIVE-Spieler (Alle 5 Sekunden)
 app.post("/fetch-live-claims", (req, res) => {
     const { players } = req.body;
 
@@ -54,7 +74,7 @@ app.post("/fetch-live-claims", (req, res) => {
 
         if (pendingClaims[cleanName]) {
             rewardsToSend.push(username);
-            delete pendingClaims[cleanName]; // Sofort löschen nach Erhalt
+            delete pendingClaims[cleanName];
         }
     });
 
