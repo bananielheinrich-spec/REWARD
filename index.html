@@ -160,10 +160,10 @@
 
 <div class="container">
     <h1>Live Reward</h1>
-    <p class="subtitle">Gib deinen Namen ein. Du erhältst alle 24h automatisch <span style="color: #00a2ff; font-weight: 500;">1.000 Wins</span> im Spiel.</p>
+    <p class="subtitle">Trage deinen Namen ein und hole dir alle 24h manuell deine <span style="color: #00a2ff; font-weight: 600;">+1.000 zusätzlichen Wins</span> ab.</p>
 
     <input type="text" id="username" placeholder="Roblox Name" autocomplete="off">
-    <button id="claim-btn" onclick="claimReward()">Wins anfordern</button>
+    <button id="claim-btn" onclick="claimReward()">Wins jetzt abholen</button>
 
     <div id="timer-display" class="timer-box"></div>
     <p id="status"></p>
@@ -204,18 +204,16 @@ class WallpaperParticle {
         this.size = this.baseSize;
         this.vx = (Math.random() - 0.5) * 0.4;
         this.vy = (Math.random() - 0.5) * 0.4;
-        this.color = "rgba(0, 162, 255, "; // Deine Wunschfarbe (Dezentes Hellblau)
+        this.color = "rgba(0, 162, 255, ";
     }
 
     update() {
         this.x += this.vx;
         this.y += this.vy;
 
-        // Bildschirmränder abprallen
         if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
         if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
 
-        // Maus-Interaktion (Repulsion / Wegdrücken)
         if (mouse.x != null && mouse.y != null) {
             let dx = this.x - mouse.x;
             let dy = this.y - mouse.y;
@@ -242,7 +240,6 @@ class WallpaperParticle {
 
 function initWallpaperParticles() {
     particles = [];
-    // Partikelanzahl skaliert mit der Bildschirmgröße
     let numberOfParticles = (canvas.width * canvas.height) / 9000;
     for (let i = 0; i < numberOfParticles; i++) {
         particles.push(new WallpaperParticle());
@@ -256,7 +253,6 @@ function drawLines() {
             let dy = particles[a].y - particles[b].y;
             let distance = Math.sqrt(dx * dx + dy * dy);
 
-            // Verbinde nahe beieinander liegende Partikel
             if (distance < 100) {
                 let alpha = (100 - distance) / 100 * 0.06;
                 ctx.strokeStyle = `rgba(0, 162, 255, ${alpha})`;
@@ -280,7 +276,6 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// Start der Effekte
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 initWallpaperParticles();
@@ -288,7 +283,7 @@ animate();
 
 
 // ==========================================
-// DAUERHAFTER PERSISTENTER TIMER & CLAIM LOGIK
+// PERSISTENTER TIMER & CLAIM LOGIK
 // ==========================================
 const inputField = document.getElementById("username");
 const claimBtn = document.getElementById("claim-btn");
@@ -297,7 +292,6 @@ const status = document.getElementById("status");
 
 let countdownInterval;
 
-// Prüfen, ob noch ein aktiver Timer im Speicher liegt
 window.addEventListener("load", checkActiveCooldown);
 
 function checkActiveCooldown() {
@@ -305,10 +299,8 @@ function checkActiveCooldown() {
     if (unlockTime) {
         const timeLeft = unlockTime - Date.now();
         if (timeLeft > 0) {
-            // Timer läuft noch -> UI sperren und Timer anzeigen
             startTimer(timeLeft);
         } else {
-            // Abgelaufen -> Speicher löschen
             localStorage.removeItem("claimUnlockTime");
         }
     }
@@ -318,7 +310,7 @@ function startTimer(duration) {
     inputField.disabled = true;
     claimBtn.disabled = true;
     timerDisplay.style.display = "block";
-    status.innerHTML = "<span style='color: #71717a;'>Du hast deine Belohnung heute bereits geholt.</span>";
+    status.innerHTML = "<span style='color: #71717a;'>Du hast deine heutigen Wins bereits abgeholt.</span>";
 
     function updateDisplay() {
         const now = Date.now();
@@ -330,6 +322,7 @@ function startTimer(duration) {
             localStorage.removeItem("claimUnlockTime");
             inputField.disabled = false;
             claimBtn.disabled = false;
+            inputField.value = ""; // Feld leeren für neue Eingabe
             timerDisplay.style.display = "none";
             status.innerHTML = "";
             return;
@@ -339,7 +332,7 @@ function startTimer(duration) {
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        timerDisplay.innerHTML = `⏱ Sperre aktiv: ${hours}g ${minutes}m ${seconds}s`;
+        timerDisplay.innerHTML = `⏱ Nächster Claim möglich in: ${hours} Std. ${minutes} Min. ${seconds} Sek.`;
     }
 
     updateDisplay();
@@ -354,7 +347,7 @@ async function claimReward() {
         return;
     }
 
-    status.innerHTML = "Prüfe...";
+    status.innerHTML = "Prüfe Account...";
 
     try {
         const res = await fetch("https://roblox-reward.onrender.com/create-claim", {
@@ -369,22 +362,17 @@ async function claimReward() {
 
         if (data.success) {
             status.innerHTML = `
-                <span style="color: #10b981; font-weight: 500;">✔ Erfolgreich aktiviert</span><br>
-                <span style="color: #71717a; font-size: 0.8rem;">Schau jetzt live in dein Spiel!</span>
+                <span style="color: #10b981; font-weight: 500;">✔ +1.000 Wins freigeschaltet!</span><br>
+                <span style="color: #71717a; font-size: 0.8rem;">Schau in dein Spiel. Komm in 24 Stunden wieder für mehr!</span>
             `;
             
-            // 24 Stunden Cooldown berechnen und lokal im Browser sichern
             const cooldownExpiry = Date.now() + (24 * 60 * 60 * 1000);
             localStorage.setItem("claimUnlockTime", cooldownExpiry);
-            
-            // Timer sofort starten
             startTimer(24 * 60 * 60 * 1000);
         } else {
             status.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
             
-            // Falls der Webserver sagt, man hat noch Cooldown, wir aber lokal keinen Timer hatten (z.B. Cookies gelöscht)
             if (data.error.includes("Warte noch")) {
-                // Extrahiere grob die Stunden aus der Servermeldung und setze zur Sicherheit einen lokalen Timer
                 const match = data.error.match(/\d+/);
                 if (match) {
                     const hoursLeft = parseInt(match[0]);
