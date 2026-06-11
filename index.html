@@ -70,13 +70,12 @@
 
 <div class="container">
     <h1>Roblox Reward System</h1>
-    <p style="color: #aaa; font-size: 0.9em;">Gib deinen Namen ein, um 1000 Wins anzufordern</p>
+    <p style="color: #aaa; font-size: 0.9em;">Gib deinen Namen ein, um 1000 Wins freizuschalten (Egal ob online oder offline!)</p>
 
     <input type="text" id="username" placeholder="Roblox Benutzername">
 
-    <!-- Hier ist der Button mit der korrekten onclick-Funktion -->
     <button onclick="claimReward()">
-        Belohnung anfordern
+        Wins anfordern
     </button>
 
     <p id="status"></p>
@@ -92,10 +91,9 @@ async function claimReward() {
         return;
     }
 
-    status.innerHTML = "Generiere sicheren Token...<br><span style='font-size:0.8em; color:#888;'>Bitte warten.</span>";
+    status.innerHTML = "Verarbeite Anforderung...";
 
     try {
-        // Verbindung zu deinem Render Live-Server
         const res = await fetch("https://roblox-reward.onrender.com/create-claim", {
             method: "POST",
             headers: {
@@ -108,15 +106,14 @@ async function claimReward() {
 
         if (data.success) {
             status.innerHTML = `
-                <span style="color: #4cd137; font-weight: bold;">✔ Token erfolgreich generiert!</span><br><br>
-                Kopiere diesen Code, gehe in mein Spiel und löse ihn dort ein:<br><br>
-                <strong style="color: #00a2ff; font-size: 1.4em; letter-spacing: 1px; background: #2a2a2a; padding: 5px 10px; border-radius: 4px; display: inline-block;">${data.token}</strong>
+                <span style="color: #4cd137; font-weight: bold;">✔ Belohnung registriert!</span><br><br>
+                Deine <span style="color:#00a2ff; font-weight:bold;">1000 Wins</span> wurden für deinen Account hinterlegt. Wenn du im Spiel bist oder es betrittst, werden sie dir direkt gutgeschrieben!
             `;
         } else {
-            status.textContent = "Fehler beim Erstellen des Claims: " + (data.error || "Unbekannter Fehler");
+            status.textContent = "Fehler: " + (data.error || "Unbekannter Fehler");
         }
     } catch (error) {
-        status.textContent = "Server temporär nicht erreichbar. Versuche es gleich noch einmal.";
+        status.textContent = "Server nicht erreichbar. Bitte später versuchen.";
         console.error(error);
     }
 }
