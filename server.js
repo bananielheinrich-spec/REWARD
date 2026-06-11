@@ -51,6 +51,7 @@ app.get("/validate/:token", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+// NEU und RICHTIG:
 app.listen(PORT, () => {
-    print(`Server läuft auf Port ${PORT}`);
+    console.log(`Server läuft auf Port ${PORT}`);
 });
