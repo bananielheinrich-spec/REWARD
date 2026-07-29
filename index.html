@@ -95,16 +95,22 @@
             padding-bottom: 8px;
         }
 
+        .stage-title {
+            color: #34d399;
+            font-size: 15px;
+            margin: 10px 0 5px 0;
+        }
+
         .anim-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 10px;
-            margin-top: 10px;
+            margin-bottom: 10px;
         }
 
         .anim-item {
             background-color: var(--card-bg);
-            padding: 10px;
+            padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
         }
@@ -112,7 +118,7 @@
         .anim-name {
             font-weight: bold;
             color: #cbd5e1;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .anim-id {
@@ -132,26 +138,21 @@
 
     <div class="container">
         <h1>Lua Animation Viewer</h1>
-        <p class="subtitle">Füge deine langen Lua-Tabellen ein, um sie übersichtlich zu sortieren und als Datei herunterzuladen.</p>
+        <p class="subtitle">Füge deine riesige Lua-Tabelle ein, um sie übersichtlich anzuzeigen und herunterzuladen.</p>
 
         <div class="input-section">
             <label for="luaInput"><strong>Lua-Tabelle hier einfügen:</strong></label>
-            <textarea id="luaInput" placeholder="Bunny = {
-    Baby = {
-        Walk = &quot;rbxassetid://...&quot;,
-        Idle = &quot;rbxassetid://...&quot;
-    }
-}"></textarea>
+            <textarea id="luaInput" placeholder="Füge hier deine Tabelle ein..."></textarea>
             <div class="actions">
                 <button onclick="parseLuaTable()">Tabelle analysieren</button>
-                <button onclick="downloadFile()" style="background-color: #10b981; color: white;">Als Datei herunterladen</button>
+                <button onclick="downloadFile()" style="background-color: #10b981; color: white;">Als JSON herunterladen</button>
             </div>
         </div>
 
         <div class="output-section">
             <h3 style="margin-top: 0;">Übersicht & Vorschau:</h3>
             <div id="resultsContainer">
-                <p style="color: #64748b;">Noch keine Daten geladen. Füge oben eine Tabelle ein und klicke auf "Tabelle analysieren".</p>
+                <p style="color: #64748b;">Noch keine Daten geladen. Füge oben deine Tabelle ein und klicke auf "Tabelle analysieren".</p>
             </div>
         </div>
     </div>
@@ -163,29 +164,35 @@
             const rawText = document.getElementById('luaInput').value;
             parsedData = {};
             
-            // Einfacher Parser für Lua-Tabellen im Format: Key = { SubKey = "Value", ... }
-            // Entfernt Zuweisungen am Anfang wie "Bunny =" falls vorhanden
-            let cleaned = rawText.replace(/^[a-zA-Z0-9_]+\s*=\s*/, '');
-            
-            // Da das Parsen von komplett echtem Lua im Browser ohne externe Bibliotheken komplex ist,
-            // nutzen wir ein robustes RegEx-Muster, um Blöcke und Schlüssel-Wert-Paare zu finden.
-            
-            // Wir suchen nach Hauptkategorien (z.B. Baby = { ... })
-            const categoryRegex = /([a-zA-Z0-9_]+)\s*=\s*\{([^}]*)\}/g;
-            let match;
+            const lines = rawText.split('\n');
+            let currentAnimal = '';
+            let currentStage = '';
 
-            while ((match = categoryRegex.exec(cleaned)) !== null) {
-                const catName = match.1;
-                const catContent = match.2;
-                parsedData[catName] = {};
+            for (let line of lines) {
+                let trimmed = line.trim();
 
-                // Suche nach Untereinträgen (z.B. Walk = "rbxassetid://...")
-                const itemRegex = /([a-zA-Z0-9_]+)\s*=\s*["']([^"']+)["']/g;
-                let itemMatch;
-                while ((itemMatch = itemRegex.exec(catContent)) !== null) {
-                    const itemName = itemMatch.1;
-                    const itemValue = itemMatch.2;
-                    parsedData[catName][itemName] = itemValue;
+                // Erkennst Tier-Namen (z.B. "Pig = {" oder "Bunny = {")
+                let animalMatch = trimmed.match(/^([a-zA-Z0-9_]+)\s*=\s*\{/);
+                if (animalMatch && !['Baby', 'Teen', 'Adult'].includes(animalMatch[1])) {
+                    currentAnimal = animalMatch[1];
+                    parsedData[currentAnimal] = {};
+                    continue;
+                }
+
+                // Erkennt Lebensphasen (z.B. "Baby = {")
+                let stageMatch = trimmed.match(/^(Baby|Teen|Adult)\s*=\s*\{/i);
+                if (stageMatch && currentAnimal) {
+                    currentStage = stageMatch[1];
+                    parsedData[currentAnimal][currentStage] = {};
+                    continue;
+                }
+
+                // Erkennt Animations-Einträge (z.B. Walk = "rbxassetid://...")
+                let entryMatch = trimmed.match(/^([a-zA-Z0-9_]+)\s*=\s*["']([^"']+)["']/);
+                if (entryMatch && currentAnimal && currentStage) {
+                    let animType = entryMatch[1];
+                    let animId = entryMatch[2];
+                    parsedData[currentAnimal][currentStage][animType] = animId;
                 }
             }
 
@@ -196,54 +203,62 @@
             const container = document.getElementById('resultsContainer');
             container.innerHTML = '';
 
-            const categories = Object.keys(parsedData);
-            if (categories.length === 0) {
-                container.innerHTML = '<p style="color: #ef4444;">Fehler: Konnte keine Struktur erkennen. Überprüfe das Format deiner Lua-Tabelle.</p>';
+            const animals = Object.keys(parsedData);
+            if (animals.length === 0) {
+                container.innerHTML = '<p style="color: #ef4444;">Fehler: Konnte keine Struktur erkennen. Bitte überprüfe dein Format.</p>';
                 return;
             }
 
-            categories.forEach(cat => {
+            animals.forEach(animal => {
                 const catCard = document.createElement('div');
                 catCard.className = 'category-card';
 
                 const catTitle = document.createElement('h4');
                 catTitle.className = 'category-title';
-                catTitle.textContent = cat;
+                catTitle.textContent = animal;
                 catCard.appendChild(catTitle);
 
-                const grid = document.createElement('div');
-                grid.className = 'anim-grid';
+                const stages = Object.keys(parsedData[animal]);
+                stages.forEach(stage => {
+                    const stageTitle = document.createElement('div');
+                    stageTitle.className = 'stage-title';
+                    stageTitle.textContent = '• ' + stage;
+                    catCard.appendChild(stageTitle);
 
-                const items = parsedData[cat];
-                Object.keys(items).forEach(itemName => {
-                    const animItem = document.createElement('div');
-                    animItem.className = 'anim-item';
+                    const grid = document.createElement('div');
+                    grid.className = 'anim-grid';
 
-                    const nameEl = document.createElement('div');
-                    nameEl.className = 'anim-name';
-                    nameEl.textContent = itemName;
+                    const anims = parsedData[animal][stage];
+                    Object.keys(anims).forEach(animName => {
+                        const animItem = document.createElement('div');
+                        animItem.className = 'anim-item';
 
-                    const idEl = document.createElement('div');
-                    idEl.className = 'anim-id';
-                    idEl.textContent = items[itemName];
+                        const nameEl = document.createElement('div');
+                        nameEl.className = 'anim-name';
+                        nameEl.textContent = animName;
 
-                    animItem.appendChild(nameEl);
-                    animItem.appendChild(idEl);
-                    grid.appendChild(animItem);
+                        const idEl = document.createElement('div');
+                        idEl.className = 'anim-id';
+                        idEl.textContent = anims[animName];
+
+                        animItem.appendChild(nameEl);
+                        animItem.appendChild(idEl);
+                        grid.appendChild(animItem);
+                    });
+
+                    catCard.appendChild(grid);
                 });
 
-                catCard.appendChild(grid);
                 container.appendChild(catCard);
             });
         }
 
         function downloadFile() {
             if (Object.keys(parsedData).length === 0) {
-                alert('Bitte erstelle zuerst eine gültige Analyse!');
+                alert('Bitte analysiere zuerst eine Tabelle!');
                 return;
             }
 
-            // Erstelle eine saubere JSON-Datei (kann auch als .txt gespeichert werden)
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(parsedData, null, 4));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
