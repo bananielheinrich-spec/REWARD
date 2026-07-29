@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lua Animation Parser & Viewer</title>
+    <title>Lua Animation Parser & Keyframe Export</title>
+    <!-- JSZip Bibliothek für den automatischen Ordner-Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -137,15 +139,15 @@
 <body>
 
     <div class="container">
-        <h1>Lua Animation Viewer</h1>
-        <p class="subtitle">Füge deine riesige Lua-Tabelle ein, um sie übersichtlich anzuzeigen und herunterzuladen.</p>
+        <h1>Lua Animation Keyframe Exporter</h1>
+        <p class="subtitle">Füge deine Lua-Tabelle ein und erhalte für jedes Tier einen eigenen Ordner mit den Keyframes als Dateien.</p>
 
         <div class="input-section">
             <label for="luaInput"><strong>Lua-Tabelle hier einfügen:</strong></label>
             <textarea id="luaInput" placeholder="Füge hier deine Tabelle ein..."></textarea>
             <div class="actions">
                 <button onclick="parseLuaTable()">Tabelle analysieren</button>
-                <button onclick="downloadFile()" style="background-color: #10b981; color: white;">Als JSON herunterladen</button>
+                <button onclick="downloadZipFolder()" style="background-color: #10b981; color: white;">Als ZIP-Ordner herunterladen</button>
             </div>
         </div>
 
@@ -171,7 +173,6 @@
             for (let line of lines) {
                 let trimmed = line.trim();
 
-                // Erkennst Tier-Namen (z.B. "Pig = {" oder "Bunny = {")
                 let animalMatch = trimmed.match(/^([a-zA-Z0-9_]+)\s*=\s*\{/);
                 if (animalMatch && !['Baby', 'Teen', 'Adult'].includes(animalMatch[1])) {
                     currentAnimal = animalMatch[1];
@@ -179,7 +180,6 @@
                     continue;
                 }
 
-                // Erkennt Lebensphasen (z.B. "Baby = {")
                 let stageMatch = trimmed.match(/^(Baby|Teen|Adult)\s*=\s*\{/i);
                 if (stageMatch && currentAnimal) {
                     currentStage = stageMatch[1];
@@ -187,7 +187,6 @@
                     continue;
                 }
 
-                // Erkennt Animations-Einträge (z.B. Walk = "rbxassetid://...")
                 let entryMatch = trimmed.match(/^([a-zA-Z0-9_]+)\s*=\s*["']([^"']+)["']/);
                 if (entryMatch && currentAnimal && currentStage) {
                     let animType = entryMatch[1];
@@ -253,19 +252,47 @@
             });
         }
 
-        function downloadFile() {
-            if (Object.keys(parsedData).length === 0) {
-                alert('Bitte analysiere zuerst eine Tabelle!');
+        async function downloadZipFolder() {
+            const animals = Object.keys(parsedData);
+            if (animals.length === 0) {
+                alert('Bitte analysiere zuerst eine gültige Tabelle!');
                 return;
             }
 
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(parsedData, null, 4));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "animation_ids.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            const zip = new JSZip();
+
+            // Für jedes Tier einen eigenen Ordner im ZIP erstellen
+            for (const animal of animals) {
+                const animalFolder = zip.folder(animal);
+                const animalData = parsedData[animal];
+
+                // Generiere eine saubere Lua-Datei mit allen Keyframes für das Tier
+                let luaContent = `-- Animation Keyframes für ${animal}\n`;
+                luaContent += `local ${animal}Animations = {\n`;
+                
+                for (const [stage, anims] of Object.entries(animalData)) {
+                    luaContent += `\t${stage} = {\n`;
+                    for (const [animName, animId] of Object.entries(anims)) {
+                        luaContent += `\t\t${animName} = "${animId}",\n`;
+                    }
+                    luaContent += `\t},\n`;
+                }
+                luaContent += `}\n\nreturn ${animal}Animations`;
+
+                // Speichert die .lua Datei im Tier-Ordner
+                animalFolder.file(`${animal}_animations.lua`, luaContent);
+            }
+
+            // ZIP-Datei generieren und Download starten
+            const content = await zip.generateAsync({ type: "blob" });
+            const url = window.URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "Animal_Keyframes_Folders.zip";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
         }
     </script>
 </body>
