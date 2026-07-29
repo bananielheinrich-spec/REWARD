@@ -3,391 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Rewards</title>
-
+    <title>Lua Animation Parser & Viewer</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --border-color: #334155;
+            --button-hover: #0ea5e9;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #06060a;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
         }
 
-        /* Interaktiver Wallpaper Engine Hintergrund */
-        #effect-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* Ultra-Clean Card Design */
         .container {
-            background: rgba(10, 10, 15, 0.6);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            padding: 40px 30px;
-            border-radius: 24px;
-            text-align: center;
-            width: 380px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            z-index: 2;
-            transition: border-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-        }
-
-        .container:hover {
-            border-color: rgba(0, 162, 255, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 20px 50px rgba(0, 162, 255, 0.05);
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         h1 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-            background: linear-gradient(180deg, #ffffff, #a1a1aa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 5px;
         }
 
         p.subtitle {
-            color: #71717a;
-            font-size: 0.88rem;
-            line-height: 1.4;
-        }
-
-        /* Minimalistisches Input-Feld */
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            margin-top: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            color: #ffffff;
-            font-size: 0.95rem;
             text-align: center;
-            transition: all 0.3s ease;
+            color: #94a3b8;
+            margin-top: 0;
+            margin-bottom: 30px;
         }
 
-        input:focus {
-            outline: none;
-            border-color: rgba(0, 162, 255, 0.4);
-            background: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 20px rgba(0, 162, 255, 0.08);
-        }
-
-        input::placeholder {
-            color: #42424a;
-        }
-
-        input:disabled {
-            background: rgba(255, 255, 255, 0.01);
-            border-color: rgba(255, 255, 255, 0.03);
-            color: #52525b;
-            cursor: not-allowed;
-        }
-
-        /* Cleaner, flacher Button */
-        button {
-            width: 100%;
-            margin-top: 12px;
-            padding: 14px;
-            border: none;
+        .input-section, .output-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            background: #ffffff;
-            color: #050507;
-            font-weight: 600;
-            font-size: 0.95rem;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background 0.2s;
+            margin-top: 10px;
         }
 
         button:hover {
-            background: #e4e4e7;
-            transform: scale(1.01);
+            background-color: var(--button-hover);
         }
 
-        button:active {
-            transform: scale(0.99);
-        }
-
-        button:disabled {
-            background: rgba(255, 255, 255, 0.08);
-            color: #71717a;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* Status & Timer Text */
-        #status {
-            margin-top: 20px;
-            font-size: 0.88rem;
-            line-height: 1.5;
-            color: #a1a1aa;
-        }
-
-        .timer-box {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(239, 68, 68, 0.06);
-            border: 1px solid rgba(239, 68, 68, 0.15);
+        .category-card {
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            color: #f87171;
-            font-weight: 500;
-            display: none;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            color: var(--accent-color);
+            font-size: 18px;
+            margin-top: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .anim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .anim-item {
+            background-color: var(--card-bg);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .anim-name {
+            font-weight: bold;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .anim-id {
+            font-family: monospace;
+            color: #38bdf8;
+            font-size: 12px;
+            word-break: break-all;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
 
-<canvas id="effect-canvas"></canvas>
+    <div class="container">
+        <h1>Lua Animation Viewer</h1>
+        <p class="subtitle">Füge deine langen Lua-Tabellen ein, um sie übersichtlich zu sortieren und als Datei herunterzuladen.</p>
 
-<div class="container">
-    <h1>Live Reward</h1>
-    <p class="subtitle">Trage deinen Namen ein und hole dir alle 24h manuell deine <span style="color: #00a2ff; font-weight: 600;">+1.000 zusätzlichen Wins</span> ab.</p>
-
-    <input type="text" id="username" placeholder="Roblox Name" autocomplete="off">
-    <button id="claim-btn" onclick="claimReward()">Wins jetzt abholen</button>
-
-    <div id="timer-display" class="timer-box"></div>
-    <p id="status"></p>
-</div>
-
-<script>
-// ==========================================
-// WALLPAPER ENGINE PARTIKEL-SYSTEM (INTERAKTIV)
-// ==========================================
-const canvas = document.getElementById("effect-canvas");
-const ctx = canvas.getContext("2d");
-
-let particles = [];
-const mouse = { x: null, y: null, radius: 120 };
-
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    initWallpaperParticles();
-}
-window.addEventListener("resize", resizeCanvas);
-
-window.addEventListener("mousemove", (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-});
-
-window.addEventListener("mouseleave", () => {
-    mouse.x = null;
-    mouse.y = null;
-});
-
-class WallpaperParticle {
-    constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.baseSize = Math.random() * 1.5 + 0.5;
-        this.size = this.baseSize;
-        this.vx = (Math.random() - 0.5) * 0.4;
-        this.vy = (Math.random() - 0.5) * 0.4;
-        this.color = "rgba(0, 162, 255, ";
+        <div class="input-section">
+            <label for="luaInput"><strong>Lua-Tabelle hier einfügen:</strong></label>
+            <textarea id="luaInput" placeholder="Bunny = {
+    Baby = {
+        Walk = &quot;rbxassetid://...&quot;,
+        Idle = &quot;rbxassetid://...&quot;
     }
+}"></textarea>
+            <div class="actions">
+                <button onclick="parseLuaTable()">Tabelle analysieren</button>
+                <button onclick="downloadFile()" style="background-color: #10b981; color: white;">Als Datei herunterladen</button>
+            </div>
+        </div>
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
+        <div class="output-section">
+            <h3 style="margin-top: 0;">Übersicht & Vorschau:</h3>
+            <div id="resultsContainer">
+                <p style="color: #64748b;">Noch keine Daten geladen. Füge oben eine Tabelle ein und klicke auf "Tabelle analysieren".</p>
+            </div>
+        </div>
+    </div>
 
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    <script>
+        let parsedData = {};
 
-        if (mouse.x != null && mouse.y != null) {
-            let dx = this.x - mouse.x;
-            let dy = this.y - mouse.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < mouse.radius) {
-                let force = (mouse.radius - distance) / mouse.radius;
-                this.x += (dx / distance) * force * 2;
-                this.y += (dy / distance) * force * 2;
-                this.size = this.baseSize * 1.5;
-            } else {
-                if (this.size > this.baseSize) this.size -= 0.05;
-            }
-        }
-    }
-
-    draw() {
-        ctx.fillStyle = this.color + "0.4)";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
-
-function initWallpaperParticles() {
-    particles = [];
-    let numberOfParticles = (canvas.width * canvas.height) / 9000;
-    for (let i = 0; i < numberOfParticles; i++) {
-        particles.push(new WallpaperParticle());
-    }
-}
-
-function drawLines() {
-    for (let a = 0; a < particles.length; a++) {
-        for (let b = a + 1; b < particles.length; b++) {
-            let dx = particles[a].x - particles[b].x;
-            let dy = particles[a].y - particles[b].y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < 100) {
-                let alpha = (100 - distance) / 100 * 0.06;
-                ctx.strokeStyle = `rgba(0, 162, 255, ${alpha})`;
-                ctx.lineWidth = 0.5;
-                ctx.beginPath();
-                ctx.moveTo(particles[a].x, particles[a].y);
-                ctx.lineTo(particles[b].x, particles[b].y);
-                ctx.stroke();
-            }
-        }
-    }
-}
-
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let p of particles) {
-        p.update();
-        p.draw();
-    }
-    drawLines();
-    requestAnimationFrame(animate);
-}
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-initWallpaperParticles();
-animate();
-
-
-// ==========================================
-// PERSISTENTER TIMER & CLAIM LOGIK
-// ==========================================
-const inputField = document.getElementById("username");
-const claimBtn = document.getElementById("claim-btn");
-const timerDisplay = document.getElementById("timer-display");
-const status = document.getElementById("status");
-
-let countdownInterval;
-
-window.addEventListener("load", checkActiveCooldown);
-
-function checkActiveCooldown() {
-    const unlockTime = localStorage.getItem("claimUnlockTime");
-    if (unlockTime) {
-        const timeLeft = unlockTime - Date.now();
-        if (timeLeft > 0) {
-            startTimer(timeLeft);
-        } else {
-            localStorage.removeItem("claimUnlockTime");
-        }
-    }
-}
-
-function startTimer(duration) {
-    inputField.disabled = true;
-    claimBtn.disabled = true;
-    timerDisplay.style.display = "block";
-    status.innerHTML = "<span style='color: #71717a;'>Du hast deine heutigen Wins bereits abgeholt.</span>";
-
-    function updateDisplay() {
-        const now = Date.now();
-        const unlockTime = localStorage.getItem("claimUnlockTime");
-        const diff = unlockTime - now;
-
-        if (diff <= 0) {
-            clearInterval(countdownInterval);
-            localStorage.removeItem("claimUnlockTime");
-            inputField.disabled = false;
-            claimBtn.disabled = false;
-            inputField.value = ""; // Feld leeren für neue Eingabe
-            timerDisplay.style.display = "none";
-            status.innerHTML = "";
-            return;
-        }
-
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        timerDisplay.innerHTML = `⏱ Nächster Claim möglich in: ${hours} Std. ${minutes} Min. ${seconds} Sek.`;
-    }
-
-    updateDisplay();
-    countdownInterval = setInterval(updateDisplay, 1000);
-}
-
-async function claimReward() {
-    const username = inputField.value.trim();
-
-    if (!username) {
-        status.innerHTML = "<span style='color: #ef4444;'>Bitte Namen eingeben.</span>";
-        return;
-    }
-
-    status.innerHTML = "Prüfe Account...";
-
-    try {
-        const res = await fetch("https://roblox-reward.onrender.com/create-claim", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ username })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            status.innerHTML = `
-                <span style="color: #10b981; font-weight: 500;">✔ +1.000 Wins freigeschaltet!</span><br>
-                <span style="color: #71717a; font-size: 0.8rem;">Schau in dein Spiel. Komm in 24 Stunden wieder für mehr!</span>
-            `;
+        function parseLuaTable() {
+            const rawText = document.getElementById('luaInput').value;
+            parsedData = {};
             
-            const cooldownExpiry = Date.now() + (24 * 60 * 60 * 1000);
-            localStorage.setItem("claimUnlockTime", cooldownExpiry);
-            startTimer(24 * 60 * 60 * 1000);
-        } else {
-            status.innerHTML = `<span style="color: #ef4444;">${data.error}</span>`;
+            // Einfacher Parser für Lua-Tabellen im Format: Key = { SubKey = "Value", ... }
+            // Entfernt Zuweisungen am Anfang wie "Bunny =" falls vorhanden
+            let cleaned = rawText.replace(/^[a-zA-Z0-9_]+\s*=\s*/, '');
             
-            if (data.error.includes("Warte noch")) {
-                const match = data.error.match(/\d+/);
-                if (match) {
-                    const hoursLeft = parseInt(match[0]);
-                    const cooldownExpiry = Date.now() + (hoursLeft * 60 * 60 * 1000);
-                    localStorage.setItem("claimUnlockTime", cooldownExpiry);
-                    startTimer(hoursLeft * 60 * 60 * 1000);
+            // Da das Parsen von komplett echtem Lua im Browser ohne externe Bibliotheken komplex ist,
+            // nutzen wir ein robustes RegEx-Muster, um Blöcke und Schlüssel-Wert-Paare zu finden.
+            
+            // Wir suchen nach Hauptkategorien (z.B. Baby = { ... })
+            const categoryRegex = /([a-zA-Z0-9_]+)\s*=\s*\{([^}]*)\}/g;
+            let match;
+
+            while ((match = categoryRegex.exec(cleaned)) !== null) {
+                const catName = match.1;
+                const catContent = match.2;
+                parsedData[catName] = {};
+
+                // Suche nach Untereinträgen (z.B. Walk = "rbxassetid://...")
+                const itemRegex = /([a-zA-Z0-9_]+)\s*=\s*["']([^"']+)["']/g;
+                let itemMatch;
+                while ((itemMatch = itemRegex.exec(catContent)) !== null) {
+                    const itemName = itemMatch.1;
+                    const itemValue = itemMatch.2;
+                    parsedData[catName][itemName] = itemValue;
                 }
             }
-        }
-    } catch (error) {
-        status.innerHTML = "<span style='color: #ef4444;'>Server nicht erreichbar.</span>";
-        console.error(error);
-    }
-}
-</script>
 
+            renderResults();
+        }
+
+        function renderResults() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            const categories = Object.keys(parsedData);
+            if (categories.length === 0) {
+                container.innerHTML = '<p style="color: #ef4444;">Fehler: Konnte keine Struktur erkennen. Überprüfe das Format deiner Lua-Tabelle.</p>';
+                return;
+            }
+
+            categories.forEach(cat => {
+                const catCard = document.createElement('div');
+                catCard.className = 'category-card';
+
+                const catTitle = document.createElement('h4');
+                catTitle.className = 'category-title';
+                catTitle.textContent = cat;
+                catCard.appendChild(catTitle);
+
+                const grid = document.createElement('div');
+                grid.className = 'anim-grid';
+
+                const items = parsedData[cat];
+                Object.keys(items).forEach(itemName => {
+                    const animItem = document.createElement('div');
+                    animItem.className = 'anim-item';
+
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'anim-name';
+                    nameEl.textContent = itemName;
+
+                    const idEl = document.createElement('div');
+                    idEl.className = 'anim-id';
+                    idEl.textContent = items[itemName];
+
+                    animItem.appendChild(nameEl);
+                    animItem.appendChild(idEl);
+                    grid.appendChild(animItem);
+                });
+
+                catCard.appendChild(grid);
+                container.appendChild(catCard);
+            });
+        }
+
+        function downloadFile() {
+            if (Object.keys(parsedData).length === 0) {
+                alert('Bitte erstelle zuerst eine gültige Analyse!');
+                return;
+            }
+
+            // Erstelle eine saubere JSON-Datei (kann auch als .txt gespeichert werden)
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(parsedData, null, 4));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "animation_ids.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+    </script>
 </body>
 </html>
